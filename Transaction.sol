@@ -3,9 +3,12 @@ pragma solidity ^0.4.25;
 contract TransactionContract {
 	
 	event newSell();
+	event newBuyRequireEvent(string buyerAddress);
 	event newTransactionEvent(uint transactionId);  //occur when a new transaction been created.
 	event newTransactionClaimEvent(uint transactionId);
 	event transactionUnClaimEvent(uint transactionId);
+	event deliveryCompleteEvent(uint transactionId);
+	event transactionCompleteEvent(uint transactionId);
 	
 	uint transactionNum = 0;
 	
@@ -26,12 +29,17 @@ contract TransactionContract {
 		userType[msg.sender] = _type;
 	}
 	
-	function sellStuff(string _buyerAddress) public {
+	function buyStuff() public {
+		require(keccak256(userType[msg.sender]) == keccak256("buyer"));
+		//pay cryptocurrency
+		newBuyRequireEvent(msg.sender);
+	}
+	
+	function createTransaction(string _buyerAddress) public {
 		require(keccak256(userType[msg.sender]) == keccak256("seller"));
 		transactions.push(Transaction(msg.sender, _buyerAddress, "NULL", transactionNum));
 		newTransactionEvent(transactionNum);  //notice couriers to deliver the commodity, and notice buyer the transaction has created.
 		transactionNum++;
-		
 	}
 	
 	function claimTransaction(uint transactionId) public {  //courier claim the transaction to deliver commodity.
@@ -47,9 +55,17 @@ contract TransactionContract {
 		transactionUnClaimEvent(transactionId);
 	}
 	
-	function something() {
-		require(keccak256(userType[msg.sender]) == keccak256("seller"));  //check userType
-		//something
+	function deliveryComplete(uint transactionId) public {
+		require(keccak256(msg.sender) == keccak256(transactions[transactionId].courierAddress));
+		deliveryCompleteEvent(transactionId);
 	}
+	
+	function transactionComplete(uint transactionId) public {
+		require(keccak256(msg.sender) == keccak256(transactions[transactionId].buyerAddress));
+		//courier get some money from transaction, seller get remaining money.
+		transactionCompleteEvent(transactionId);
+	}
+	
+	
 	
 }
