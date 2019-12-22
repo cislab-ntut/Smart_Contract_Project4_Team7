@@ -37,9 +37,10 @@ contract TransactionContract {
 	
 	function createTransaction(string _buyerAddress) public {
 		require(keccak256(userType[msg.sender]) == keccak256("seller"));
-		transactions.push(Transaction(msg.sender, _buyerAddress, "NULL", transactionNum));
-		newTransactionEvent(transactionNum);  //notice couriers to deliver the commodity, and notice buyer the transaction has created.
-		transactionNum++;
+		transactionId = transactions.length;
+		transactions.push(Transaction(msg.sender, _buyerAddress, "NULL", transactionId));
+		newTransactionEvent(transactionId);  //notice couriers to deliver the commodity, and notice buyer the transaction has created.
+		
 	}
 	
 	function claimTransaction(uint transactionId) public {  //courier claim the transaction to deliver commodity.
