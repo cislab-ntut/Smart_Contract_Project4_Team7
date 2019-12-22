@@ -3,7 +3,7 @@ pragma solidity ^0.4.25;
 contract TransactionContract {
 	
 	event newSell();
-	event newBuyRequireEvent(string buyerAddress);
+	event newBuyRequireEvent(address buyerAddress);
 	event newTransactionEvent(uint transactionId);  //occur when a new transaction been created.
 	event newTransactionClaimEvent(uint transactionId);
 	event transactionUnClaimEvent(uint transactionId);
@@ -11,9 +11,9 @@ contract TransactionContract {
 	event transactionCompleteEvent(uint transactionId);
 	
 	struct Transaction{
-		string sellerAddress;
-		string buyerAddress;
-		string courierAddress;
+		address sellerAddress;
+		address buyerAddress;
+		address courierAddress;
 		uint id;
 		//can add fruit type, amount, prize, ...
 	}
@@ -34,7 +34,7 @@ contract TransactionContract {
 		newBuyRequireEvent(msg.sender);
 	}
 	
-	function createTransaction(string _buyerAddress) public {
+	function createTransaction(address _buyerAddress) public {
 		require(keccak256(userType[msg.sender]) == keccak256("seller"));
 		transactionId = transactions.length;
 		transactions.push(Transaction(msg.sender, _buyerAddress, "NULL", transactionId));
@@ -44,24 +44,24 @@ contract TransactionContract {
 	
 	function claimTransaction(uint transactionId) public {  //courier claim the transaction to deliver commodity.
 		require(keccak256(userType[msg.sender]) == keccak256("courier"));
-		require(keccak256(transactions[transactionId].courierAddress) == keccak256("NULL"));
+		require(keccak256(transactions[transactionId].courierAddress) == keccak256("0x0"));
 		transactions[transactionId].courierAddress = msg.sender;
 		newTransactionClaimEvent(transactionId);
 	}
 	
 	function unclaimTransaction(uint transactionId) public {  //courier renounce the transaction
-		require(keccak256(msg.sender) == keccak256(transactions[transactionId].courierAddress));
-		transactions[transactionId].courierAddress = "NULL";
+		require(msg.sender == transactions[transactionId].courierAddress);
+		transactions[transactionId].courierAddress = "0x0";
 		transactionUnClaimEvent(transactionId);
 	}
 	
 	function deliveryComplete(uint transactionId) public {
-		require(keccak256(msg.sender) == keccak256(transactions[transactionId].courierAddress));
+		require(msg.sender == transactions[transactionId].courierAddress);
 		deliveryCompleteEvent(transactionId);
 	}
 	
 	function transactionComplete(uint transactionId) public {
-		require(keccak256(msg.sender) == keccak256(transactions[transactionId].buyerAddress));
+		require(msg.sender == transactions[transactionId].buyerAddress);
 		//courier get some money from transaction, seller get remaining money.
 		transactionCompleteEvent(transactionId);
 	}
