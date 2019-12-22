@@ -17,6 +17,7 @@ contract TransactionContract {
 		string buyerAddress;
 		string courierAddress;
 		uint id;
+		//can add fruit type, amount, prize, ...
 	}
 	
 	Transaction[] public transactions;
