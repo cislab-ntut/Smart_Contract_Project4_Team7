@@ -10,8 +10,6 @@ contract TransactionContract {
 	event deliveryCompleteEvent(uint transactionId);
 	event transactionCompleteEvent(uint transactionId);
 	
-	uint transactionNum = 0;
-	
 	struct Transaction{
 		string sellerAddress;
 		string buyerAddress;
