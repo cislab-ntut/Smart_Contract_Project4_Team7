@@ -10,12 +10,17 @@ contract TransactionContract {
 	event deliveryCompleteEvent(uint transactionId);
 	event transactionCompleteEvent(uint transactionId);
 	
+	event ItemReceived();
+	
 	struct Transaction{
 		address sellerAddress;
 		address buyerAddress;
 		address courierAddress;
 		uint id;
 		//can add fruit type, amount, prize, ...
+		enum State { Created, Locked, Inactive }
+    		State public state;
+		unit price;
 	}
 	
 	Transaction[] public transactions;
@@ -66,6 +71,40 @@ contract TransactionContract {
 		transactionCompleteEvent(transactionId);
 	}
 	
+	// purchase function are wrote by the following four part and some new varity are added:
 	
+	modifier inState(State _state) {
+		require(
+		    state == _state,
+		    "Invalid state."
+		);
+		_;
+    	}
+	
+	modifier onlyBuyer() {
+		require(
+		    msg.sender == buyerAddress,
+		    "Only buyer can call this."
+		);
+		_;
+	}
+	
+	function confirmPurchase(unit price) public 
+		inState(State.Created)
+		condition(msg.balance > price)
+	{
+		buyerAddress = msg.sender;
+		state = State.Locked;
+	}
+	
+	function confirmReceived(unit price) public
+		onlyBuyer
+		inState(State.Locked)
+	{
+		emit ItemReceived();
+		state = State.Inactive;
+		buyerAddress.transfer(price);
+		sellerAddress.transfer(address(this).balance);
+	}
 	
 }
