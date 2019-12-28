@@ -1,6 +1,8 @@
-pragma solidity ^0.4.25;
+pragma solidity >=0.5.0 <0.6.0;
 
-contract TransactionContract {
+import "./Ownable.sol";
+
+contract TransactionContract is Ownable {
 	event newSell();
 	event newBuyRequireEvent(address buyerAddress);
 	event newTransactionEvent(uint transactionId);  //occur when a new transaction been created.
@@ -19,6 +21,7 @@ contract TransactionContract {
 		_;
 	}
 
+	enum uType { Initial, Buyer, Seller, Courier }
 	enum State { Created, Locked, Inactive }
 	struct Transaction{
 		address sellerAddress;
@@ -30,40 +33,39 @@ contract TransactionContract {
 		//can add fruit type, amount, prize, ...
 	}
 	Transaction[] public transactions;
+	mapping (address => uType) userType;
 
-	mapping (address => string) userType;
-
-	// _type = { buyer, seller, courier }
-	function chooseUserType(string _type) public {
+	// _type = { Initial, Buyer, Seller, Courier } 0 1 2 3
+	function chooseUserType(uint _type) public {
 		// only when the key is not exist, can choose userType
-		require(userType[msg.sender] == 0, "userType exist!");
-		userType[msg.sender] = _type;
+		require(userType[msg.sender] == uType(0), "userType exist!");
+		userType[msg.sender] = uType(_type);
 	}
 
 	function buyStuff() public {
-		require(keccak256(userType[msg.sender]) == keccak256("buyer"), "userType error!");
+		require(userType[msg.sender] == uType.Buyer, "userType error!");
 		// pay cryptocurrency
 		emit newBuyRequireEvent(msg.sender);
 	}
 
 	function createTransaction(address _buyerAddress) public {
-		require(keccak256(userType[msg.sender]) == keccak256("seller"), "userType error!");
-		transactionId = transactions.length;
-		transactions.push(Transaction(msg.sender, _buyerAddress, "0x0", transactionId));
+		require(userType[msg.sender] == uType.Seller, "userType error!");
+		uint transactionId = transactions.length;
+		transactions.push(Transaction(msg.sender, _buyerAddress, address(0), transactionId, 0, State.Created));
 		emit newTransactionEvent(transactionId);  //notice couriers to deliver the commodity, and notice buyer the transaction has created.
 
 	}
 
 	function claimTransaction(uint transactionId) public {  //courier claim the transaction to deliver commodity.
-		require(keccak256(userType[msg.sender]) == keccak256("courier"), "userType error!");
-		require(keccak256(transactions[transactionId].courierAddress) == keccak256("0x0"), "courier exist!");
+		require(userType[msg.sender] == uType.Seller, "userType error!");
+		require(transactions[transactionId].courierAddress == address(0), "courier exist!");
 		transactions[transactionId].courierAddress = msg.sender;
 		emit newTransactionClaimEvent(transactionId);
 	}
 
 	function unclaimTransaction(uint transactionId) public {  //courier renounce the transaction
 		require(msg.sender == transactions[transactionId].courierAddress, "courier only!");
-		transactions[transactionId].courierAddress = "0x0";
+		transactions[transactionId].courierAddress = address(0);
 		emit transactionUnClaimEvent(transactionId);
 	}
 
@@ -87,8 +89,10 @@ contract TransactionContract {
 
 	function confirmReceived(uint transactionId, uint price) public onlyBuyer(transactionId) inState(transactionId, State.Locked) {
 		emit ItemReceived();
+		address payable buyer = address(uint160(transactions[transactionId].buyerAddress));
+		address payable seller = address(uint160(transactions[transactionId].sellerAddress));
 		transactions[transactionId].state = State.Inactive;
-		transactions[transactionId].buyerAddress.transfer(price);
-		transactions[transactionId].sellerAddress.transfer(address(this).balance);
+		buyer.transfer(price);
+		seller.transfer(address(this).balance);
 	}
 }
