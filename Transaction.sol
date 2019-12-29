@@ -28,10 +28,18 @@ contract TransactionContract is Ownable {
 		address buyerAddress;
 		address courierAddress;
 		uint id;
-		uint price;
+		string buyProduct;
+		uint buyProductNum;
+		uint buyAmount;
+		uint buyPrice;
+		//uint price;
     	State state;
 		//can add fruit type, amount, prize, ...
 	}
+
+	string [4] public product = [ 'apple', 'banana', 'cranberry', 'grape' ];
+    uint [4] public price = [ 30, 25, 50, 70 ];
+
 	Transaction[] public transactions;
 	mapping (address => uType) userType;
 
@@ -42,16 +50,25 @@ contract TransactionContract is Ownable {
 		userType[msg.sender] = uType(_type);
 	}
 
-	function buyStuff() public {
+	function buyStuff(uint productChoose, uint buyNum) public {
 		require(userType[msg.sender] == uType.Buyer, "userType error!");
+		if (productChoose < 0 || productChoose > 3) {
+		}
+		else {
+			buyProductNum = productChoose;
+			buyProduct = product[productChoose];
+			buyAmount = buyNum;
+			buyPrice = buyNum * price[buyProductNum];
+		}
 		// pay cryptocurrency
 		emit newBuyRequireEvent(msg.sender);
 	}
 
-	function createTransaction(address _buyerAddress) public {
+	function createTransaction(address _buyerAddress, string _buyProduct, uint _buyAmount, uint _buyPrice) public {
 		require(userType[msg.sender] == uType.Seller, "userType error!");
 		uint transactionId = transactions.length;
-		transactions.push(Transaction(msg.sender, _buyerAddress, address(0), transactionId, 0, State.Created));
+		//transactions.push(Transaction(msg.sender, _buyerAddress, address(0), transactionId, 0, State.Created));
+		transactions.push(Transaction(msg.sender, _buyerAddress, address(0), transactionId, _buyProduct, _buyAmount, _buyPrice, State.Created));
 		emit newTransactionEvent(transactionId);  //notice couriers to deliver the commodity, and notice buyer the transaction has created.
 
 	}
@@ -81,18 +98,20 @@ contract TransactionContract is Ownable {
 	}
 
 	// purchase function are wrote by the following four part and some new varity are added:
-	function confirmPurchase(uint transactionId, uint price) public inState(transactionId, State.Created) {
-		require(msg.sender.balance > price, "balance not enough!");
+	function confirmPurchase(uint transactionId, uint buyPrice) public inState(transactionId, State.Created) {
+		//require(msg.sender.balance > price, "balance not enough!");
+		require(msg.sender.balance > transactions[transactionId].buyPrice, "balance not enough!");
 		transactions[transactionId].buyerAddress = msg.sender;
 		transactions[transactionId].state = State.Locked;
 	}
 
-	function confirmReceived(uint transactionId, uint price) public onlyBuyer(transactionId) inState(transactionId, State.Locked) {
+	function confirmReceived(uint transactionId, uint buyPrice) public onlyBuyer(transactionId) inState(transactionId, State.Locked) {
 		emit ItemReceived();
 		address payable buyer = address(uint160(transactions[transactionId].buyerAddress));
 		address payable seller = address(uint160(transactions[transactionId].sellerAddress));
 		transactions[transactionId].state = State.Inactive;
-		buyer.transfer(price);
+		//buyer.transfer(price);
+		buyer.transfer(buyPrice);
 		seller.transfer(address(this).balance);
 	}
 }
