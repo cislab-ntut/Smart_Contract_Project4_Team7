@@ -4,6 +4,7 @@ import "./Ownable.sol";
 
 contract TransactionContract is Ownable {
 	event newSell();
+	event Deposit(address sender, uint amount);
 	event newTransactionEvent(uint transactionId);
 	event newBuyRequireEvent(address buyerAddress);
 	event confirmPurchaseEvent(uint transactionId);
@@ -86,11 +87,11 @@ contract TransactionContract is Ownable {
 		transactions[_id].state = transactionState(_state);
 	}
 
-	function getContractBalance() public view onlyOwner returns (uint) {
+	function getContractBalance() public onlyOwner view returns (uint) {
 		return address(this).balance;
 	}
 
-	function showTransactionInfo(uint _id) public view onlyRelationship(_id)
+	function showTransactionInfo(uint _id) public onlyRelationship(_id) view
 		returns (transactionState, address, address, address, uint[4] memory, uint) {
 		return (transactions[_id].state, transactions[_id].sellerAddress, transactions[_id].buyerAddress,
 			transactions[_id].courierAddress, transactions[_id].items, transactions[_id].totalAmount);
@@ -107,7 +108,7 @@ contract TransactionContract is Ownable {
 		emit newTransactionEvent(_transactionId);
 	}
 
-	function buyStuff(uint _transactionId, uint[] memory productAmount) public
+	function buyStuff(uint _transactionId, uint[4] calldata productAmount) external
 		onlyBuyer(_transactionId) returns (uint) {
 		uint total = 0;
 		for(uint i = 0; i < 4; i++) {
@@ -121,13 +122,14 @@ contract TransactionContract is Ownable {
 	}
 
 	// purchase function are wrote by the following four part and some new varity are added:
-	function confirmPurchase(uint _transactionId) public
+	function confirmPurchase(uint _transactionId) external
 		inState(_transactionId, transactionState.Selected) payable {
 		uint price = transactions[_transactionId].totalAmount;
 		require(msg.sender.balance > price, "balance not enough!");
+		require(msg.value == price, "transfer price error!");
 		emit confirmPurchaseEvent(_transactionId);
 		// transfer to contract address
-
+		emit Deposit(msg.sender, msg.value);
 		transactions[_transactionId].state = transactionState.Purchase;
 	}
 
