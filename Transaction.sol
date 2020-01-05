@@ -6,14 +6,15 @@ contract TransactionContract is Ownable {
 	event newSell();
 	event Deposit(address sender, uint amount);
 	event newTransactionEvent(uint transactionId);
-	event newBuyRequireEvent(address buyerAddress);
-	event confirmPurchaseEvent(uint transactionId);
+	event newBuyRequireEvent(address buyer, uint transactionId, uint[4] items);
+	event confirmPurchaseEvent(uint transactionId, uint amount);
 	event newTransactionClaimEvent(uint transactionId);
 	event transactionUnClaimEvent(uint transactionId);
 	event deliveryCompleteEvent(uint transactionId);
-	event transactionCompleteEvent(uint transactionId);
 	event confirmReceivedEvent(uint transactionId);
-
+	event transactionCompleteEvent(uint transactionId, uint amount, uint shipCost);
+	event refoundBuyerAmountEvent(uint transactionId, address buyer, uint amount);
+	event testPesticideEvent(uint transactionId);
 	string[4] public productName = [ 'apple', 'banana', 'cranberry', 'grape' ];
     uint[4] public productPrice = [ 300000000, 250000000, 500000000, 700000000 ];
 
@@ -87,15 +88,21 @@ contract TransactionContract is Ownable {
 		transactions[_id].state = transactionState(_state);
 	}
 
+	// set transaction state "Locked"
+	function destroyTransaction(uint _id) external onlyOwner {
+
+	}
+
 	function getContractBalance() public onlyOwner view returns (uint) {
 		return address(this).balance;
 	}
 
-	function showTransactionInfo(uint _id) public onlyRelationship(_id) view
+	function getTransactionInfo(uint _id) public onlyRelationship(_id) view
 		returns (transactionState, address, address, address, uint[4] memory, uint) {
 		return (transactions[_id].state, transactions[_id].sellerAddress, transactions[_id].buyerAddress,
 			transactions[_id].courierAddress, transactions[_id].items, transactions[_id].totalAmount);
 	}
+
 	// buyer must remember the transaction ID
 	function createTransaction(uint _transactionId, address _buyerAddress) public
 		returns (uint) {
@@ -117,7 +124,7 @@ contract TransactionContract is Ownable {
 		}
 		transactions[_transactionId].totalAmount = total;
 		transactions[_transactionId].state = transactionState.Selected;
-		emit newBuyRequireEvent(msg.sender);
+		emit newBuyRequireEvent(msg.sender, _transactionId, transactions[_transactionId].items);
 		return total;
 	}
 
@@ -127,7 +134,7 @@ contract TransactionContract is Ownable {
 		uint price = transactions[_transactionId].totalAmount;
 		require(msg.sender.balance > price, "balance not enough!");
 		require(msg.value == price, "transfer price error!");
-		emit confirmPurchaseEvent(_transactionId);
+		emit confirmPurchaseEvent(_transactionId, price);
 		// transfer to contract address
 		emit Deposit(msg.sender, msg.value);
 		transactions[_transactionId].state = transactionState.Purchase;
@@ -176,6 +183,21 @@ contract TransactionContract is Ownable {
 		// transfer from contract to seller and courier
 		seller.transfer(totalAmount);
 		courier.transfer(shipCost);
-		emit transactionCompleteEvent(_transactionId);
+		emit transactionCompleteEvent(_transactionId, totalAmount, shipCost);
 	}
+
+	function refoundBuyerAmount(uint _transactionId) public onlyOwner payable {
+		address payable buyer = address(uint160(transactions[_transactionId].buyerAddress));
+		uint amount = transactions[_transactionId].totalAmount;
+		require(address(this).balance > amount, "balance not enough!");
+		buyer.transfer(amount);
+		emit refoundBuyerAmountEvent(_transactionId, buyer, amount);
+	}
+
+	// random test the pesticide whenever owner wants
+	// if it exceeded, set transaction state "Locked"
+	function testPesticide() public onlyOwner {
+
+	}
+
 }
