@@ -56,6 +56,7 @@
 [Tangerine Testnet](https://testnet.tangerine.garden/transaction/0x0e2214d90002da3361d4776e486e6caad9c7315c55e875102da18cdee0f6202c)
 
 [Rinkeby Testnet](https://rinkeby.etherscan.io/tx/0x65a4960a7f157a66e045eb80d2748103a5d61ad0efef0d6f37e8a61729cc0570)
+
 在 Remix IDE上用Injected Web3做部署，成功會產生網址如下圖，要點進去才可看到合約成功的地方(如上方網址所呈現)
 ![](https://i.imgur.com/H0oUZ8B.png)
 
