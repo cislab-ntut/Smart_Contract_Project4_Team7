@@ -47,6 +47,7 @@
 <br>
 
 [交易紀錄](https://testnet.tangerine.garden/transaction/0x0e2214d90002da3361d4776e486e6caad9c7315c55e875102da18cdee0f6202c)
+[injected Web3部署測試](https://rinkeby.etherscan.io/tx/0x65a4960a7f157a66e045eb80d2748103a5d61ad0efef0d6f37e8a61729cc0570)
 
 ## Contribution
 [click me](https://hackmd.io/@molrobot/B1AeclryL)
