@@ -17,7 +17,8 @@
     - refoundBuyerAmount
     - testPesticide
 
-> 粗體字為合約主要結構，其他setter及modifier等過於繁瑣故不在此列出，請至`Transaction.sol`查看。
+> 粗體字為合約主要結構，其他setter及modifier等過於繁瑣故不在此列出，請至`Transaction.sol`查看。  
+> 主要重心著重在交易流程完整性及身分驗證，並提供各式功能讓買家、賣家、物流、農委會及合約持有者方便使用。農產品驗證的部分仍然需要具體的行為，故我們希望可以留下
 
 ## 運作流程
 
@@ -39,18 +40,19 @@
 
 > 所有訂單皆透過以上方式按照順序運作，若沒依照順序執行，會因為身分不同或訂單狀態不正確而阻擋，因而浪費gas，故使用者呼叫API時請小心。
 
-###
-
-
+### 輔助功能
+1. `refoundBuyerAmount`，當交易進行中發生任何問題，需要取消交易並退還款項，可透過此方式將已支付到合約內的金額退還給買家。若交易已完成或交易狀態異常則無法操作。
+2. `testPesticide`，若農委會檢測到產品有問題，可以呼叫此功能，會將進行中的所有交易訂單暫時鎖住。若要解鎖，要請合約持有者進行訂單的個別操作來解鎖。
+3. `getTransactionInfo`，所有交易都是公開透明的，任何人都可以透過訂單編號查詢訂單狀態，此功能會將訂單的所有內容回傳。
 ## 部署
 > 1. 於線上編譯器編譯通過，並使用JavaScript VM做部署測試，依照以上方法進行操作，功能皆正常運作。之後嘗試將ByteCode導出並於柑橘測試網路部署成功。  
 > 2. 嘗試使用Injected Web3做部署測試，才知道此線上編譯器的部署功能也能快速部署至測試網路。  
 > 3. 目前只有部署完成的階段，並未使用任何前端進行API呼叫。
 <br>
 
-[交易紀錄](https://testnet.tangerine.garden/transaction/0x0e2214d90002da3361d4776e486e6caad9c7315c55e875102da18cdee0f6202c)
+[Tangerine Testnet](https://testnet.tangerine.garden/transaction/0x0e2214d90002da3361d4776e486e6caad9c7315c55e875102da18cdee0f6202c)
 
-[injected Web3部署測試](https://rinkeby.etherscan.io/tx/0x65a4960a7f157a66e045eb80d2748103a5d61ad0efef0d6f37e8a61729cc0570)
+[Rinkeby Testnet](https://rinkeby.etherscan.io/tx/0x65a4960a7f157a66e045eb80d2748103a5d61ad0efef0d6f37e8a61729cc0570)
 
 ## Contribution
 [click me](https://hackmd.io/@molrobot/B1AeclryL)
