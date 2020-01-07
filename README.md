@@ -38,6 +38,7 @@
 > 所有訂單皆透過以上方式按照順序運作，若沒依照順序執行，會因為身分不同或訂單狀態不正確而阻擋，因而浪費gas，故使用者呼叫API時請小心。
 
 ## 部署
+[交易紀錄](https://testnet.tangerine.garden/transaction/0x0e2214d90002da3361d4776e486e6caad9c7315c55e875102da18cdee0f6202c)
 
 ## Contribution
 [click me](https://hackmd.io/@molrobot/B1AeclryL)
